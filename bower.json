@@ -1,0 +1,22 @@
+{
+  "name": "phaser-game",
+  "homepage": "https://github.com/jpJuni0r/phaser-game",
+  "authors": [
+    "Jan-Philipp <post.janph@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "assets/lib",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "phaser": "~2.4.4"
+  }
+}
