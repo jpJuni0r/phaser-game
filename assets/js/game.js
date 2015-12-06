@@ -4,19 +4,23 @@ var PhaserGame = function() {
 
 }
 
+var ground = [];
+var player;
+
 PhaserGame.prototype = {
   preload: function() {
     this.load.image('background', 'assets/img/background-full.png');
     this.load.image('pipe', 'assets/img/pipe.png');
     this.load.image('ground', 'assets/img/ground.png');
-    this.load.spritesheet('player', 'assets/img/player.png');
+    this.load.spritesheet('player', 'assets/img/player.png', 17, 28, 4, 0);
   },
   create: function() {
     game.add.image(0, 0, 'background');
 
+
     // Physics
     game.physics.startSystem(Phaser.Physics.ARCADE);
-    game.physics.arcade.gravity.y = 400
+    game.physics.arcade.gravity.y = 100;
 
 
     // Adding Pipes
@@ -28,10 +32,79 @@ PhaserGame.prototype = {
 
 
     // Ground
-    var ground = [];
     for (var i = 0; i < 20; i++) {
       ground.push(game.add.sprite(32 * i, 448, 'ground'));
       ground[i].scale.setTo(2, 2);
+
+      game.physics.enable(ground[i], Phaser.Physics.ARCADE);
+      ground[i].body.collideWorldBounds = true;
+      ground[i].body.immovable = true;
+    }
+
+
+    // Player
+    player = game.add.sprite(game.world.centerX, 50, 'player');
+    player.scale.setTo(2, 2);
+    player.anchor.setTo(.5, .5);
+
+    player.animations.add('left', [0, 1], 15, true);
+    player.animations.add('right', [0, 1], 15, true);
+    player.animations.add('jump', [2], 1, true);
+    player.animations.add('fall', [3], 1, true);
+
+    game.physics.enable(player, Phaser.Physics.ARCADE);
+    player.body.collideWorldBounds = true;
+    player.body.gravity.y = 1000;
+    player.body.maxVelocity.y = 500;
+  },
+  update: function() {
+    ground.forEach(function(tile) {
+      game.physics.arcade.collide(player, tile);
+    });
+
+    cursors = game.input.keyboard.createCursorKeys();
+    player.body.velocity.x = 0;
+
+    var facing = 'right';
+
+    if (cursors.left.isDown) {
+        //  Move to the left
+        player.body.velocity.x = -250;
+        player.animations.play('left');
+
+        // Face left
+        player.scale.x = -2;
+
+        facing = 'left';
+    } else if (cursors.right.isDown) {
+        //  Move to the right
+        player.body.velocity.x = 250;
+        player.animations.play('right');
+
+        // Face right
+        player.scale.x = 2;
+
+        facing = 'right';
+    } else {
+        //  Stand still
+        player.frame = 0;
+    }
+
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down) {
+        player.body.velocity.y = -550;
+    }
+
+    // Flying animation
+    // Is the player in the air
+    if (!player.body.touching.down) {
+      // Is the player falling
+      player.animations.stop();
+      if (player.body.velocity.y <= 1) {
+        player.animations.play('jump');
+      } else {
+        player.animations.play('fall');
+      }
     }
   }
 }
