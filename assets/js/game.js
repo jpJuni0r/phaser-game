@@ -6,6 +6,7 @@ var PhaserGame = function() {
 
 var ground = [];
 var player;
+var leftPipeSprite, rightPipeSprite;
 
 PhaserGame.prototype = {
   preload: function() {
@@ -24,11 +25,17 @@ PhaserGame.prototype = {
 
 
     // Adding Pipes
-    var leftPipeSprite = game.add.sprite(8, 352 + 32, 'pipe');
+    leftPipeSprite = game.add.sprite(8, 352 + 32, 'pipe');
     leftPipeSprite.scale.setTo(2, 2);
+    game.physics.enable(leftPipeSprite, Phaser.Physics.ARCADE);
+    leftPipeSprite.body.immovable = true;
+    leftPipeSprite.body.allowGravity = false;
 
-    var rightPipeSprite = game.add.sprite(568, 352 + 32, 'pipe');
+    rightPipeSprite = game.add.sprite(568, 352 + 32, 'pipe');
     rightPipeSprite.scale.setTo(2, 2);
+    game.physics.arcade.enableBody(rightPipeSprite);
+    rightPipeSprite.body.immovable = true;
+    rightPipeSprite.body.allowGravity = false;
 
 
     // Ground
@@ -37,8 +44,8 @@ PhaserGame.prototype = {
       ground[i].scale.setTo(2, 2);
 
       game.physics.enable(ground[i], Phaser.Physics.ARCADE);
-      ground[i].body.collideWorldBounds = true;
       ground[i].body.immovable = true;
+      ground[i].body.allowGravity = false;
     }
 
 
@@ -58,10 +65,16 @@ PhaserGame.prototype = {
     player.body.maxVelocity.y = 500;
   },
   update: function() {
+    // Collisions
     ground.forEach(function(tile) {
       game.physics.arcade.collide(player, tile);
     });
 
+    game.physics.arcade.collide(player, leftPipeSprite);
+    game.physics.arcade.collide(player, rightPipeSprite);
+
+
+    // Player movement
     cursors = game.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
 
