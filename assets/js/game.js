@@ -2,10 +2,11 @@ var game = new Phaser.Game(640, 480, Phaser.AUTO, 'phaser-game', null, false, fa
 
 var PhaserGame = function() {
 
-}
+};
 
 var ground = [];
 var player;
+var enemies = [];
 var leftPipeSprite, rightPipeSprite;
 
 PhaserGame.prototype = {
@@ -13,6 +14,7 @@ PhaserGame.prototype = {
     this.load.image('background', 'assets/img/background-full.png');
     this.load.image('pipe', 'assets/img/pipe.png');
     this.load.image('ground', 'assets/img/ground.png');
+    this.load.spritesheet('enemie', 'assets/img/enemie.png', 16, 26, 3, 0);
     this.load.spritesheet('player', 'assets/img/player.png', 17, 28, 4, 0);
   },
   create: function() {
@@ -49,10 +51,38 @@ PhaserGame.prototype = {
     }
 
 
+    //Enemie
+    if (enemies.length == 0) {
+      var enemie = enemie = game.add.sprite(game.world.centerX + 20, 40, 'enemie');
+      enemie.scale.setTo(2, 2);
+      enemie.anchor.setTo(0.5, 0.5);
+
+      enemie.animations.add('left', [1, 2], 6, true);
+      enemie.animations.add('right', [1, 2], 6, true);
+      enemie.animations.add('air', [0]);
+
+      /*
+        0: Not drawn to screen
+        1: Drawn to screen and launched
+        2: Land on the ground
+        3: Out of shell and walking around
+        4: Dead
+      */
+      enemie.status = 0;
+      enemie.facing = 'left';
+      console.log('facing left')
+
+      game.physics.enable(enemie, Phaser.Physics.ARCADE);
+
+      enemies.push(enemie);
+    }
+
+
+
     // Player
     player = game.add.sprite(game.world.centerX, 50, 'player');
     player.scale.setTo(2, 2);
-    player.anchor.setTo(.5, .5);
+    player.anchor.setTo(0.5, 0.5);
 
     player.animations.add('left', [0, 1], 15, true);
     player.animations.add('right', [0, 1], 15, true);
@@ -72,6 +102,63 @@ PhaserGame.prototype = {
 
     game.physics.arcade.collide(player, leftPipeSprite);
     game.physics.arcade.collide(player, rightPipeSprite);
+
+
+    // Enemie logic
+    enemies.forEach(function (enemie) {
+      [ground, leftPipeSprite, rightPipeSprite].forEach(function(object) {
+        game.physics.arcade.collide(enemie, object);
+      });
+
+      switch (enemie.status) {
+        // Spawn enemie
+        case 0:
+          if (true) {
+            enemie.position.x = 38;
+            enemie.position.y = 390;
+            enemie.body.velocity.x = 200;
+          }
+          enemie.body.gravity.y = 1000;
+          enemie.body.maxVelocity = 500;
+          enemie.body.velocity.y = -750;
+
+          enemie.status += 1;
+          break;
+        case 1:
+          // Is landed on the ground?
+          if (enemie.body.position.y == 396) {
+            enemie.body.velocity.x = 0;
+
+            enemie.status += 1;
+
+            window.setTimeout(function () {
+              enemie.animations.play('left');
+              enemie.body.velocity.x = -40;
+              enemie.status += 1;
+            }, 1000);
+          }
+          break;
+        case 3:
+          // -- Idle mode
+
+          // Is touching left pipe ?
+          if (enemie.position.x == 88 && enemie.facing == 'left') {
+            enemie.body.velocity.x = 40;
+            enemie.animations.play('right');
+            enemie.scale.x = -2;
+            enemie.facing = 'right';
+
+            // Is touching right pipe ?
+          } else if (enemie.position.x == 552 && enemie.facing == 'right') {
+            enemie.body.velocity.x = -40;
+            enemie.animations.play('left');
+            enemie.scale.x = 2;
+            enemie.facing = 'left';
+          }
+
+          break;
+      }
+    });
 
 
     // Player movement
@@ -120,6 +207,6 @@ PhaserGame.prototype = {
       }
     }
   }
-}
+};
 
-game.state.add('Game', PhaserGame, true)
+game.state.add('Game', PhaserGame, true);
