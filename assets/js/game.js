@@ -60,17 +60,17 @@ PhaserGame.prototype = {
       enemie.animations.add('left', [1, 2], 6, true);
       enemie.animations.add('right', [1, 2], 6, true);
       enemie.animations.add('air', [0]);
+      enemie.animations.add('dead', [0]);
 
       /*
         0: Not drawn to screen
         1: Drawn to screen and launched
         2: Land on the ground
         3: Out of shell and walking around
-        4: Dead
+        4: Dying
       */
       enemie.status = 0;
       enemie.facing = 'left';
-      console.log('facing left')
 
       game.physics.enable(enemie, Phaser.Physics.ARCADE);
 
@@ -107,7 +107,10 @@ PhaserGame.prototype = {
     // Enemie logic
     enemies.forEach(function (enemie) {
       [ground, leftPipeSprite, rightPipeSprite].forEach(function(object) {
-        game.physics.arcade.collide(enemie, object);
+          // Is the enemie alive?
+          if (enemie.status <= 3) {
+            game.physics.arcade.collide(enemie, object);
+          }
       });
 
       switch (enemie.status) {
@@ -164,6 +167,33 @@ PhaserGame.prototype = {
     // Player movement
     cursors = game.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
+
+    // Player enemie colision
+    enemies.forEach(function(enemie) {
+        // Is the enemie alive?
+        if (enemie.status == 3) {
+            game.physics.arcade.collide(enemie, player, function() {
+                // Did the player land on top of the enemie?
+                if (player.body.position.y <= 345) {
+                    // Dying animation
+                    enemie.status = 4;
+                    enemie.animations.play('dead');
+                    enemie.body.velocity.y = -200;
+                    enemie.body.velocity.x = 0;
+                    
+                    window.setTimeout(function() {
+                        enemie.kill()
+                    }, 1000);
+
+                    // Throw player in the air
+                    player.body.velocity.y = -550;
+                } else {
+                    player.kill();
+                }
+            });
+        }
+    });
+
 
     var facing = 'right';
 
