@@ -172,7 +172,10 @@ PhaserGame.prototype = {
     enemies.forEach(function(enemie) {
         // Is the enemie alive?
         if (enemie.status == 3) {
+            var eventTriggered = false;
             game.physics.arcade.collide(enemie, player, function() {
+                eventTriggered = true;
+
                 // Did the player land on top of the enemie?
                 if (player.body.position.y <= 345) {
                     // Dying animation
@@ -180,7 +183,7 @@ PhaserGame.prototype = {
                     enemie.animations.play('dead');
                     enemie.body.velocity.y = -200;
                     enemie.body.velocity.x = 0;
-                    
+
                     window.setTimeout(function() {
                         enemie.kill()
                     }, 1000);
@@ -188,6 +191,11 @@ PhaserGame.prototype = {
                     // Throw player in the air
                     player.body.velocity.y = -550;
                 } else {
+                    player.kill();
+                }
+            }, function() {
+                // Kill the player when he is inside of an enemy
+                if (!eventTriggered && player.body.position.x == 392) {
                     player.kill();
                 }
             });
