@@ -53,28 +53,7 @@ PhaserGame.prototype = {
 
     //Enemie
     if (enemies.length == 0) {
-      var enemie = enemie = game.add.sprite(game.world.centerX + 20, 40, 'enemie');
-      enemie.scale.setTo(2, 2);
-      enemie.anchor.setTo(0.5, 0.5);
-
-      enemie.animations.add('left', [1, 2], 6, true);
-      enemie.animations.add('right', [1, 2], 6, true);
-      enemie.animations.add('air', [0]);
-      enemie.animations.add('dead', [0]);
-
-      /*
-        0: Not drawn to screen
-        1: Drawn to screen and launched
-        2: Land on the ground
-        3: Out of shell and walking around
-        4: Dying
-      */
-      enemie.status = 0;
-      enemie.facing = 'left';
-
-      game.physics.enable(enemie, Phaser.Physics.ARCADE);
-
-      enemies.push(enemie);
+      initSpawnEnemie();
     }
 
 
@@ -172,10 +151,7 @@ PhaserGame.prototype = {
     enemies.forEach(function(enemie) {
         // Is the enemie alive?
         if (enemie.status == 3) {
-            var eventTriggered = false;
             game.physics.arcade.collide(enemie, player, function() {
-                eventTriggered = true;
-
                 // Did the player land on top of the enemie?
                 if (player.body.position.y <= 345) {
                     // Dying animation
@@ -195,7 +171,7 @@ PhaserGame.prototype = {
                 }
             }, function() {
                 // Kill the player when he is inside of an enemy
-                if (!eventTriggered && player.body.position.x == 392) {
+                if (player.body.position.y == 392) {
                     player.kill();
                 }
             });
@@ -246,5 +222,37 @@ PhaserGame.prototype = {
     }
   }
 };
+
+function spawnEnemie() {
+  var enemie = enemie = game.add.sprite(game.world.centerX + 20, 40, 'enemie');
+  enemie.scale.setTo(2, 2);
+  enemie.anchor.setTo(0.5, 0.5);
+
+  enemie.animations.add('left', [1, 2], 6, true);
+  enemie.animations.add('right', [1, 2], 6, true);
+  enemie.animations.add('air', [0]);
+  enemie.animations.add('dead', [0]);
+
+  /*
+    0: Not drawn to screen
+    1: Drawn to screen and launched
+    2: Land on the ground
+    3: Out of shell and walking around
+    4: Dying
+  */
+  enemie.status = 0;
+  enemie.facing = 'left';
+
+  game.physics.enable(enemie, Phaser.Physics.ARCADE);
+
+  enemies.push(enemie);
+}
+
+function initSpawnEnemie() {
+  spawnEnemie();
+  setInterval(function() {
+    spawnEnemie()
+  }, 4000);
+}
 
 game.state.add('Game', PhaserGame, true);
