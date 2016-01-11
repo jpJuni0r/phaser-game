@@ -53,7 +53,7 @@ PhaserGame.prototype = {
 
 		//Enemie
 		if (enemies.length == 0) {
-			initSpawnEnemie();
+			spawnEnemie();
 		}
 
 
@@ -95,22 +95,24 @@ PhaserGame.prototype = {
 			switch (enemie.status) {
 				// Spawn enemie
 				case 0:
-                    var spawnLeftPipe = Math.floor(Math.random() * 2);
+          var spawnLeftPipe = Math.floor(Math.random() * 2);
+          var velocityFactor = Math.random() + 0.5;
 					if (spawnLeftPipe) {
 						enemie.position.x = 38;
 						enemie.position.y = 390;
-						enemie.body.velocity.x = 200;
+						enemie.body.velocity.x = 200 * velocityFactor;
 					} else {
-                        enemie.position.x = 610;
-                        enemie.position.y = 390
-                        enemie.body.velocity.x = -200;
-                    }
+            enemie.position.x = 610;
+            enemie.position.y = 390
+            enemie.body.velocity.x = -200 * velocityFactor;
+          }
 
 					enemie.body.gravity.y = 1000;
 					enemie.body.maxVelocity = 500;
 					enemie.body.velocity.y = -750;
 
 					enemie.status += 1;
+          enemie.facing = 'left';
 					break;
 				case 1:
 					// Is landed on the ground?
@@ -120,8 +122,15 @@ PhaserGame.prototype = {
 						enemie.status += 1;
 
 						window.setTimeout(function() {
-							enemie.animations.play('left');
-							enemie.body.velocity.x = -40;
+              if (enemie.body.position.x > player.body.position.x) {
+                enemie.body.velocity.x = -40;
+                enemie.animations.play('left');
+              } else {
+                enemie.body.velocity.x = 40;
+                enemie.animations.play('right');
+                enemie.scale.x = -2;
+              }
+
 							enemie.status += 1;
 						}, 1000);
 					}
@@ -247,18 +256,16 @@ function spawnEnemie() {
 	  4: Dying
 	*/
 	enemie.status = 0;
-	enemie.facing = 'left';
 
 	game.physics.enable(enemie, Phaser.Physics.ARCADE);
 
 	enemies.push(enemie);
-}
 
-function initSpawnEnemie() {
-	spawnEnemie();
-	setInterval(function() {
+	// Random timer
+	var timer = Math.random() * 2 + 0.5;
+	setTimeout(function() {
 		spawnEnemie();
-	}, 4000);
+	}, timer * 1000);
 }
 
 game.state.add('Game', PhaserGame, true);
