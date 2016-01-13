@@ -82,6 +82,9 @@ PhaserGame.prototype = {
     player.body.collideWorldBounds = true;
     player.body.gravity.y = 1000;
     player.body.maxVelocity.y = 500;
+
+    // Player status: 0 alive, 1 dead
+    player.status = 0;
   },
   update: function() {
     // Update score
@@ -89,9 +92,13 @@ PhaserGame.prototype = {
 
 
     // Collisions
-    ground.forEach(function(tile) {
-      game.physics.arcade.collide(player, tile);
-    });
+    if (player.status == 0) {
+      ground.forEach(function(tile) {
+        game.physics.arcade.collide(player, tile);
+      });
+    } else {
+      player.body.collideWorldBounds = false;
+    }
 
     game.physics.arcade.collide(player, leftPipeSprite);
     game.physics.arcade.collide(player, rightPipeSprite);
@@ -179,7 +186,7 @@ PhaserGame.prototype = {
     // Player enemie colision
     enemies.forEach(function(enemie, index) {
       // Is the enemie alive?
-      if (enemie.status == 3) {
+      if (enemie.status == 3 && player.status == 0) {
         game.physics.arcade.collide(enemie, player, function() {
           // Did the player land on top of the enemie?
 					var distance = enemie.body.position.y - player.body.position.y;
@@ -203,55 +210,67 @@ PhaserGame.prototype = {
               //enemies.splice(index, 1);
             }, 1000);
           } else {
-            player.kill();
+            player.status = 1;
+            player.animations.play('dead');
+            player.body.velocity.y = -400;
+            setTimeout(function() {
+              player.kill();
+            }, 2000);
           }
         }, function() {
           // Kill the player when he is inside of an enemy
           if (player.body.position.y == 392) {
-            player.kill();
+            player.status = 1;
+            player.animations.play('dead');
+            player.body.velocity.y = -400;
+            setTimeout(function() {
+              player.kill();
+            }, 2000);
           }
         });
       }
     });
 
+    // Is the player alive
+    if (player.status == 0) {
+      if (cursors.left.isDown) {
+        //  Move to the left
+        player.body.velocity.x = -250;
+        player.animations.play('left');
 
-    if (cursors.left.isDown) {
-      //  Move to the left
-      player.body.velocity.x = -250;
-      player.animations.play('left');
+        // Face left
+        player.scale.x = -2;
 
-      // Face left
-      player.scale.x = -2;
+        facing = 'left';
+      } else if (cursors.right.isDown) {
+        //  Move to the right
+        player.body.velocity.x = 250;
+        player.animations.play('right');
 
-      facing = 'left';
-    } else if (cursors.right.isDown) {
-      //  Move to the right
-      player.body.velocity.x = 250;
-      player.animations.play('right');
+        // Face right
+        player.scale.x = 2;
 
-      // Face right
-      player.scale.x = 2;
-
-      facing = 'right';
-    } else {
-      //  Stand still
-      player.frame = 0;
-    }
-
-    //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down) {
-      player.body.velocity.y = -550;
-    }
-
-    // Flying animation
-    // Is the player in the air
-    if (!player.body.touching.down) {
-      // Is the player falling
-      player.animations.stop();
-      if (player.body.velocity.y <= 1) {
-        player.animations.play('jump');
+        facing = 'right';
       } else {
-        player.animations.play('fall');
+        //  Stand still
+        player.frame = 0;
+      }
+
+      //  Allow the player to jump if they are touching the ground.
+      if (cursors.up.isDown && player.body.touching.down) {
+        player.body.velocity.y = -550;
+      }
+
+      // Flying animation
+      // Is the player in the air
+      if (!player.body.touching.down) {
+        // Is the player falling
+        player.animations.stop();
+        if (player.body.velocity.y <= 1) {
+          player.animations.play('jump');
+        } else {
+          player.animations.play('fall');
+        }
       }
     }
   }
