@@ -1,9 +1,15 @@
+@font-face {
+  font-family: 'Emulogic';
+  src: url(/assets/fonts/emulogic.ttf);
+}
+
 html {
-  font-family: sans-serif
+  font-family: Emulogic, sans-serif;
 }
 
 h1 {
   text-align: center;
+  color: #e75a10;
 }
 
 canvas {
